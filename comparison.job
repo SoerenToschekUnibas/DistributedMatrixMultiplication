@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#SBATCH --job-name=mandelbrot-cuda
+#SBATCH --time=00:05:00
+#SBATCH --partition=l40s
+#SBATCH --qos=l40s-30min
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:4
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --hint=nomultithread
+
+
+
+module purge
+ml CUDA/13.1.0
+
+# specify the file to compile with job ID for uniqueness
+BIN=compiled/mandelbrot_${SLURM_JOB_ID}
+
+nvcc -arch=sm_89 dense.cu -o dense.out 
+
+
+
+
+# Nsight Systems report prefix
+export PROFILE_OUT=nsys_report_${SLURM_JOB_ID}
+
+# Run with profiling
+srun nsys profile \
+    --trace=cuda,nvtx,osrt \
+    --stats=true \
+    --output=${PROFILE_OUT} \
+    dense.out >> result_file.txt
+
+srun dense.out  >> result_file.txt
+
+echo "Timing results written to result_file.txt"

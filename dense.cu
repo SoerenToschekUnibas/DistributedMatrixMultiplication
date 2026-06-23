@@ -6,11 +6,11 @@
 
 
 
-#define NUM_GPUS 1
-#define COL_DIVISIONS 1
-#define M 4096
-#define K 4096
-#define N 4096
+#define NUM_GPUS 4
+#define COL_DIVISIONS 2
+#define M 8192
+#define K 8192
+#define N 8192
 
 using namespace std;
 
@@ -93,7 +93,7 @@ void multi_gpu_gemm(
     //Initiate the CUDA streams on the different GPUs, and allocate the necessary memory on each GPU.
     for (int gpu = 0; gpu < NUM_GPUS; ++gpu)
     {
-        CHECK_CUDA(cudaSetDevice(0));
+        CHECK_CUDA(cudaSetDevice(gpu));
         CHECK_CUDA(cudaStreamCreate(&streams[gpu]));
         CHECK_CUDA(cudaStreamCreate(&streams[gpu]));
 
@@ -138,12 +138,12 @@ void multi_gpu_gemm(
             streams[gpu]));
 
     }
-    for(int timestep=0; timestep<4; timestep++){
+    for(int timestep=0; timestep<COL_DIVISIONS; timestep++){
 
         //Allocate Work on the different GPUs (spatially.)
         for (int gpu = 0; gpu < NUM_GPUS; ++gpu)
         {
-            CHECK_CUDA(cudaSetDevice(0));
+            CHECK_CUDA(cudaSetDevice(gpu));
 
             
 
@@ -177,7 +177,7 @@ void multi_gpu_gemm(
 
 
         for (int gpu = 0; gpu < NUM_GPUS; gpu++){
-            cudaSetDevice(0);
+            cudaSetDevice(gpu);
             cudaDeviceSynchronize();//Basically a Barrier.
         }
         //Now swap content of matrix B between GPUs.
@@ -202,7 +202,7 @@ void multi_gpu_gemm(
     for (int gpu = 0; gpu < NUM_GPUS; ++gpu)
     {   
 
-        const int row_start = gpu * rows_per_gpu;
+        const int row_start = gpu * (M/NUM_GPUS);
         const int local_rows =
             (gpu == NUM_GPUS - 1)
             ? (M - row_start)
@@ -213,12 +213,14 @@ void multi_gpu_gemm(
         size_t bytesB = K * N * sizeof(float);
         size_t bytesC = local_rows * N * sizeof(float);
 
+        /*
         CHECK_CUDA(cudaMemcpyAsync(
             h_C + row_start * K,
             d_C[gpu],
             bytesC,
             cudaMemcpyDeviceToHost,
             streams[gpu]));
+        */
     }
 }
 
