@@ -80,29 +80,72 @@ void matrix_multiplication(const vector<MatrixElement> A, const vector<MatrixEle
         }
     }
 
-    //Each Thread can now compute the dot pro
 
+    vector<MatrixElement> C_parts[NUM_THREADS];
+    //Inner-product based sparse matrix
+    //Each Thread can now compute the dot product
     for(int timestep = 0; timestep < NUM_THREADS; timestep++){
         #pragma omp parallel for
         for(int thread_id = 0; thread_id < NUM_THREADS; thread_id++){
             //Each thread computes the dot product of its assigned rows and columns.
-            const auto& A_part = A_parts[thread_id];
-            const auto& B_part = B_parts[(thread_id + timestep) % NUM_THREADS];
+            const vector<MatrixElement>& A_part = A_parts[thread_id];
+            const vector<MatrixElement>& B_part = B_parts[(thread_id + timestep) % NUM_THREADS];
 
             //Compute the dot product of A_i and B_j and store in C_i_j
-            for(const auto& a_elem : A_part){
-                //TODO: add hint for branch prediction.
-                if(a_elem.col-timestep % NUM_THREADS != 0) continue; //Skip elements that are not in the current timestep's column partition.
-                
-                for(const auto& b_elem : B_part){
-                    if(a_elem.col == b_elem.row){
-                        //Find the corresponding element in C and update it.
-                        //This is a naive approach. In practice, you would want to use a more efficient data structure.
-                        MatrixElement element = {a_elem.row, b_elem.col, a_elem.value * b_elem.value};
+            
 
-                        C.push_back(element);
+            //In each iteration, we only require one bucket.
+            
+            int last_row = 0;
+            int b_index = 0;
+            //Iterate over row of A; iterate over column of B.
+            for(auto a_elem = A_part.begin(); a_elem != A_part.end() ; a_elem++){
+                const int current_row = a_elem->row;
+
+                float acc = 0.0;
+                
+                if(current_row != last_row){
+                    //We have moved to a new row of A; we have to reset the column index of B.
+                    b_index = 0;
+                    last_row = current_row;
+                }
+                for(auto iter = B.begin(); iter < B.end(); iter++){
+                    if(a_elem->col == iter->row){
+                        float prod = a_elem->value * iter->value;
+                        
+                        struct MatrixElement c = {current_row,iter->col,prod};
+                        result.push_back(c);
                     }
                 }
+
+            }   
+
+                
+                /*
+                int b_lower = 0; //Each row, we have to start with B again.
+                while(a_elem != A_part.end() && a_elem->row == current_row){
+                        
+                    //TODO: add hint for branch prediction.
+                    if(a_elem->col-timestep % NUM_THREADS != 0) continue; //Skip elements that are not in the current timestep's column partition.
+                    
+                    int b_index = b_lower;
+                    MatrixElement b_elem;
+                    while(B_part[b_index].row < a_elem->col && b_index < B_part.size()){
+                        b_elem = B_part[b_index];
+                        
+                        b_index++;
+                    }
+                    if(a_elem->col == b_elem.row){
+                            //Find the corresponding element in C and update it.
+                            //This is a naive approach. In practice, you would want to use a more efficient data structure.
+                            MatrixElement element = {a_elem->row, b_elem.col, a_elem->value * b_elem.value};
+
+                            C_parts[thread_id].push_back(element);
+                            b_lower = b_index;
+                    }
+                }
+                */
+                
             }
         }
         //Implicit barrier.
@@ -112,7 +155,9 @@ void matrix_multiplication(const vector<MatrixElement> A, const vector<MatrixEle
 
     cout << "copy back results." << endl;
     for(int thread_id = 0; thread_id < NUM_THREADS; thread_id++){
-        for(const auto& elem : C){
+        
+        for(const auto& elem : C_parts[thread_id]){
+            cout << "push" << endl;
             C.push_back(elem);
         }
     }
@@ -187,8 +232,6 @@ int main(int argc, char** argv) {
 
     cout << "duration: " <<duration.count() << endl;
     //print the first 10 coefficients of C.
-    cout << "Result matrix C" << endl;
-    for(int i = 0; i < 10; i++){
-        cout << C[i].row << ", " << C[i].col << ", " << C[i].value << endl;
-    }
+    cout << "Result matrix C: " << C.size() <<endl;
+    
 }

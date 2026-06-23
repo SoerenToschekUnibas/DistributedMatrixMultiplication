@@ -5,7 +5,6 @@
 #SBATCH --partition=l40s
 #SBATCH --qos=l40s-30min
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --hint=nomultithread
