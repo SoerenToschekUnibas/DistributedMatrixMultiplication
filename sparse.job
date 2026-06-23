@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#SBATCH --job-name=sparse-mmx
+#SBATCH --time=00:05:00
+#SBATCH --partition=l40s
+#SBATCH --qos=l40s-30min
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --hint=nomultithread
+
+
+
+module purge
+ml CUDA/13.1.0
+ml intel/2024a
+# specify the file to compile with job ID for uniqueness
+BIN=compiled/sparse_${SLURM_JOB_ID}
+
+icpx -qopenmp sparseVersion2.cpp -o sparse.out 
+
+
+
+
+# Nsight Systems report prefix
+export PROFILE_OUT=nsys_report_${SLURM_JOB_ID}
+
+
+for matrix_dimension in (1024 2048 4096 8192)
+do
+    # Run with profiling
+    srun nsys profile \
+        --trace=nvtx,osrt,openmp \
+        --stats=true \
+        --force-overwrite \
+        --output=${PROFILE_OUT} \
+        sparse.out ${matrix_dimension} ${matrix_dimension} >> sparse_result_file_${matrix_dimension}.txt
+done
+# srun sparse.out  >> sresult_file.txt
+
+echo "Timing results written to result_file.txt"

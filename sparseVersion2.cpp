@@ -5,8 +5,6 @@
 #include <omp.h>
 #include <chrono>
 
-#define NUM_RAND_ROWS 4096
-#define NUM_RAND_COLS 4096
 #define NUM_THREADS 8
 
 using namespace std;
@@ -119,21 +117,31 @@ void matrix_multiplication(const vector<MatrixElement> A, const vector<MatrixEle
         }
     }
 
+
+
 }   
 
 
-int main(){
+int main(int argc, char** argv) {
+    //First input is width & height of the random sparse matrices to generate.
+    if(argc < 3){
+        cout << "Usage: " << argv[0] << endl;
+
+    }
+
+    const int NUM_RAND_ROWS = atoi(argv[1]);
+    const int NUM_RAND_COLS = atoi(argv[2]);
 
     vector<MatrixElement> identityMatrix;
     vector<MatrixElement> B;
     vector <MatrixElement> random_A;
     vector<MatrixElement> random_B;
 
+    //Create a random sparse matrix A.
     {
         int rand_row = 0;
         for(int i = 0; i < NUM_RAND_ROWS;i++){
             int rand_col = 0;
-
             for(int j = 0; j < NUM_RAND_COLS; j++){
                 rand_col += rand()%128;
                 struct MatrixElement random_elem = {rand_row, rand_col, static_cast<double>(rand()) / RAND_MAX};
@@ -143,11 +151,11 @@ int main(){
         }
     }
 
+    //Create a random sparse matrix B.
     {
         int rand_row = 0;
         for(int i = 0; i < NUM_RAND_ROWS;i++){
             int rand_col = 0;
-
             for(int j = 0; j < NUM_RAND_COLS; j++){
                 rand_col += rand()%128;
                 struct MatrixElement random_elem = {rand_row, rand_col, static_cast<double>(rand()) / RAND_MAX};
@@ -173,7 +181,7 @@ int main(){
 
 
     auto stop = high_resolution_clock::now();
-    matrix_multiplication(identityMatrix,random_matrix,C);
+    matrix_multiplication(random_A, random_B, C);
 
     auto duration = duration_cast<microseconds>(stop - start);
 

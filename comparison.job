@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=mandelbrot-cuda
+#SBATCH --job-name=dense-mmx
 #SBATCH --time=00:05:00
 #SBATCH --partition=l40s
 #SBATCH --qos=l40s-30min
