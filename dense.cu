@@ -245,13 +245,14 @@ void multi_gpu_gemm(
         size_t bytesC = local_rows * N * sizeof(float);
 
         
+        /*
         CHECK_CUDA(cudaMemcpyAsync(
             h_C + row_start * K,
             d_C[gpu],
             M*K/NUM_GPUS,
             cudaMemcpyDeviceToHost,
             streams[gpu]));
-        
+        */
     }
 }
 
