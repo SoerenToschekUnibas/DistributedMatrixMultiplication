@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <iostream>
-
+#include <omp.h>
 
 using namespace std;
 
@@ -10,25 +10,37 @@ int main(int argc, char** argv){
         cout << "Usage: " << argv[0] << endl;
         return 1;
     }
-    const int num_threads = atoi(argv[2]);
+    
     //omp_set_num_threads(num_threads);
-
-    const int matrix_size = atoi(argv[1]);
+    const int num_threads = atoi(argv[1]);
+    const int matrix_size = atoi(argv[2]);
     
     #define M matrix_size
     #define N matrix_size
     
     float* A = new float[N*N];
-    float* B = new float[N*N];
+    
     float* C = new float[N*N];
 
+    
 
+    omp_set_num_threads(num_threads);
+
+    const float start = clock();
+
+    int x = 12;
     //use static scheduling for matrix transposition.
     #pragma omp parallel for collapse(2)
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N/num_threads; i++) {
+        
+        float* B_part = new float[(N/num_threads)*N];
+        
         for (int j = 0; j < M; j++) {
-            B[j*N+i] = A[i*N+j];
+            B_part[i*N+j] = A[j*N+i];
         }
     }
 
+    const float ending = clock();
+
+    cout << matrix_size << "," << ending - start << endl; 
 }
