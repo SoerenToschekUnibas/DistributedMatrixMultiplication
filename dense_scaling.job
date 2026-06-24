@@ -2,14 +2,13 @@
 
 #SBATCH --job-name=sparse-mmx
 #SBATCH --time=00:05:00
-#SBATCH --partition=l40s
 #SBATCH --qos=l40s-30min
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --hint=nomultithread
 
-
+ml CUDA/13.1.0
 nvcc  dense.cu -o dense.out -Xcompiler -fopenmp 
 
 
