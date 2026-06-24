@@ -1,21 +1,23 @@
 #!/bin/bash
 
-#SBATCH --job-name=sparse-mmx
-#SBATCH --time=02:00:00
+#SBATCH --job-name=matrix-multiplication-openmp
+#SBATCH --time=0:30:00
+#SBATCH --partition=scicore
 #SBATCH --qos=30min
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --hint=nomultithread
+#SBATCH --exclude=sca43
 
 
 
 ml CUDA/13.1.0
 
 
-ml intel
-icpx matmul_dynamic.cpp -o dynamic.out -qopenmp
-icpx matmul_guided.cpp -o guided.out -qopenmp
-icpx matmul_static.cpp -o static.out -qopenmp
+ml intel/2024a
+ml impi/2021.13.0-intel-compilers-2024.2.0
+
+mpiicx -O3 -qopenmp matmul_dynamic.cpp -o dynamic.out 
+mpiicx -O3 -qopenmp matmul_guided.cpp -o guided.out 
+mpiicx -O3 -qopenmp matmul_static.cpp -o static.out 
 
 echo "----" >> dynamic.txt
 echo "----" >> guided.txt
@@ -28,9 +30,9 @@ mkdir execution_time_tables
 rm -f -r profiles
 mkdir profiles
 
-for num_threads in 2 4 8 16 32 64
+for num_threads in 8 16 32 64 128
 do
-    for matrix_size in 32 64 128 256 512 1024 2048 4096
+    for matrix_size in 32 64 128 256 512 1024 2048
     do
 
     export PROFILE_DYNAMIC=profiles/nsys_dynamic_${num_threads}_${matrix_size}

@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     const float start_compute = clock();
 
     
-    #pragma omp parallel for collapse(2) schedule(dynamic)
+    #pragma omp parallel for collapse(2) schedule(dynamic) 
     for(int i = 0; i < N; i++){
         for(int j = 0; j < N; j++){
             // Matrix multiplication logic would go here
@@ -44,7 +44,5 @@ int main(int argc, char** argv) {
     const float end_compute = clock();
 
     const float duration = (end_compute - start_compute) / CLOCKS_PER_SEC;
-    cout << "size: " << matrix_size << ", Threads: " << num_threads << endl;
-    cout << "Duration: " << duration << " seconds" << endl;
-    
+    cout << num_threads << ", " << matrix_size << ", " << num_threads << ", " << duration << endl;
 }
