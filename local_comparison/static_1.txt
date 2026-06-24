@@ -1,0 +1,12 @@
+size: 32, threads: 1
+Duration: 0.038516 seconds
+size: 64, threads: 1
+Duration: 0.00043 seconds
+size: 128, threads: 1
+Duration: 0.002813 seconds
+size: 256, threads: 1
+Duration: 0.070639 seconds
+size: 512, threads: 1
+Duration: 1.08534 seconds
+size: 1024, threads: 1
+Duration: 6.44917 seconds
