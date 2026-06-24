@@ -230,6 +230,7 @@ void multi_gpu_gemm(
 
     cout << "compute time: " << end_compute - start_compute << endl;
 
+    const float start_copyback = clock();
     for (int gpu = 0; gpu < NUM_GPUS; ++gpu)
     {   
 
@@ -254,6 +255,9 @@ void multi_gpu_gemm(
             streams[gpu]));
         */
     }
+    const float end_copyback = clock();
+    cout << "copyback time: " << end_copyback - start_copyback << endl;
+
 }
 
 
@@ -295,13 +299,20 @@ int main(int argc, const char* argv[])
     vector<float> h_B_transpose(sizeB);
 
     //The Transposition is bandwidth bound.
+
+    const float begin_transpose = clock();
+
     #pragma omp parallel for
     for (size_t i = 0; i < N; i++){
         for(size_t j=0; j <K; j++){
             h_B_transpose[i*K+j] = h_B[j*N+i];
         }
     }
-    //cout << "B transposed" << endl;
+
+    
+    const float end_transpose = clock();
+    cout << "transpose time: " << end_transpose - begin_transpose << endl;
+    
 
     multi_gpu_gemm(h_A.data(),h_B_transpose.data(),h_C.data(), grid_size,matrix_size);
 

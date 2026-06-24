@@ -1,0 +1,20 @@
+----
+----
+----
+compute: 12798
+compute: 108548
+compute: 1.01103e+06
+compute: 8.92817e+06
+compute: 7.68357e+07
+----
+Matrix size: 256
+compute: 13039
+Matrix size: 512
+compute: 110054
+Matrix size: 1024
+compute: 1.02826e+06
+Matrix size: 2048
+compute: 8.7452e+06
+Matrix size: 4096
+compute: 7.61991e+07
+----

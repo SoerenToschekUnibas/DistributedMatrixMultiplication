@@ -1,0 +1,25 @@
+Matrix size: 256
+transpose time: 312
+parallel compute time: 19857
+copyback time: 1
+compute: 13263
+Matrix size: 512
+transpose time: 375345
+parallel compute time: 23029
+copyback time: 0
+compute: 110296
+Matrix size: 1024
+transpose time: 1190
+parallel compute time: 23172
+copyback time: 0
+compute: 1.01042e+06
+Matrix size: 2048
+transpose time: 94632
+parallel compute time: 24701
+copyback time: 1
+compute: 8.79869e+06
+Matrix size: 4096
+transpose time: 958517
+parallel compute time: 33257
+copyback time: 0
+compute: 7.7743e+07

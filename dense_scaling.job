@@ -13,17 +13,17 @@
 nvcc  dense.cu -o dense.out -Xcompiler -fopenmp 
 
 
-
-./dense.out 2 4096 >> strong_scaling.txt
-./dense.out 4 4096 >> strong_scaling.txt
-./dense.out 8 4096 >> strong_scaling.txt
-./dense.out 16 4096 >> strong_scaling.txt
-./dense.out 32 4096 >> strong_scaling.txt
-./dense.out 64 4096 >> strong_scaling.txt
+for matrix_size in 256 512 1024 2048 do
+    ./dense.out 2 $matrix_size >> strong_scaling.txt
+done
 echo "Results in strong_scaling.txt"
 
-echo "\n-----\n" >> weak_scaling.txt
+echo "-----" >> weak_scaling.txt
 ./dense.out 1 512 >> weak_scaling.txt
 ./dense.out 8 1024 >> weak_scaling.txt
 ./dense.out 27 1536 >> weak_scaling.txt
 ./dense.out 64 2048 >> weak_scaling.txt
+./dense.out 216 3072 >> weak_scaling.txt
+
+
+

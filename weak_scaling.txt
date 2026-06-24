@@ -3,3 +3,30 @@ compute time: 23707
 compute time: 21730
 \n-----\n
 \n-----\n
+\n-----\n
+compute time: 15339
+compute time: 21415
+compute time: 23262
+compute time: 20957
+\n-----\n
+compute time: 13827
+compute time: 21674
+compute time: 25369
+compute time: 21878
+compute time: 21579
+-----
+transpose time: 639
+compute time: 15001
+copyback time: 1
+transpose time: 5841
+compute time: 21977
+copyback time: 0
+transpose time: 23054
+compute time: 25644
+copyback time: 0
+transpose time: 93912
+compute time: 21711
+copyback time: 0
+transpose time: 297166
+compute time: 20578
+copyback time: 0

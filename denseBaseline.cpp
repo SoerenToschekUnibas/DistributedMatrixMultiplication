@@ -3,20 +3,30 @@
 #include <iostream>
 
 
-#define M 2048
-#define N 2048
-#define K 2048
+
 
 using namespace std;
 
-int main(){
+int main(int argc, char** argv) {
+
+    if(argc < 2){
+        cout << "Usage: " << argv[0] << " <matrix_size>" << endl;
+        return 1;
+    }
+    int matrix_size = atoi(argv[1]);
+    #define M matrix_size
+    #define N matrix_size
+    #define K matrix_size
 
     float* A = (float*) malloc(M*N*sizeof(float));
     float* B = (float*) malloc(N*K*sizeof(float));
     float* C = (float*) malloc(M*K*sizeof(float));
 
 
-    const float start = clock();
+    const float begin_compute = clock();
+    
+    //Simple O(N^3)
+
     
     for(int i = 0; i < M; i++){
         for(int k = 0; k < K; k++){
@@ -28,10 +38,10 @@ int main(){
     }
 
 
-    const float stop = clock();
+    const float end_compute = clock();
 
 
-    cout << "duration: " << stop - start << endl;
+    cout << "compute: " << end_compute - begin_compute << endl;
     free(A);
     free(B);
     free(C);

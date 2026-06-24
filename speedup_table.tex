@@ -1,0 +1,18 @@
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+\toprule
+Matrix size & Transpose time (ms) & Parallel compute time (ms) & Copyback time (ms) & Compute time (ms) & speedup\\
+\midrule
+256  & 312      & 19\,857   & - & 13\,263     & 0.667 \\
+512  & 375\,345 & 23\,029   & - & 110\,296    & 4.78\\
+1024 & 1\,190   & 23\,172   & - & 1\,010\,420 & 43.6\\
+2048 & 94\,632  & 24\,701   & - & 8\,798\,690 & 356.2\\
+4096 & 958\,517 & 33\,257   & - & 77\,743\,000& 2337.0\\
+\bottomrule
+\end{tabular}
+\caption{Matrix multiplication timings (all values in milliseconds).}
+\label{tab:matrix-times}
+\end{table}
