@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <omp.h>
+#include <optix_types.h>
 
 struct VectorEntry {
     int index;

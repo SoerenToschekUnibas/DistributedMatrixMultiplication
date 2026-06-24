@@ -1,0 +1,6 @@
+compute time: 104644
+compute time: 57145
+compute time: 41818
+compute time: 37929
+compute time: 28001
+compute time: 25768

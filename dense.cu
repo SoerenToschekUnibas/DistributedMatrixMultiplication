@@ -6,8 +6,8 @@
 
 
 
-#define NUM_GPUS 4
-#define COL_DIVISIONS 2
+#define NUM_GPUS 1
+#define COL_DIVISIONS 1
 #define M 8192
 #define K 8192
 #define N 8192
@@ -43,30 +43,43 @@ void matmul_kernel_transposed(
     float* C,
     int rowsA)
 {
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    const int row = blockIdx.y * blockDim.y + threadIdx.y;
+    const int col = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (row < rowsA && col < N)
-    {
-        float res = 0.0f;
+    //We add these loops, so we can investigate the effects of weak and strong scaling;
+    //by varying the grid and block sizes.
+    for(int i = 0; i < M/gridDim.y*blockDim.y;i++){
+        const int row_offset = i*gridDim.y*blockDim.y+ row;
+        
+        for(int j = 0; j < N/gridDim.x*blockDim.x;j++){
+            const int col_offset = j*gridDim.x*blockDim.x + col;
+            if ( row_offset < rowsA && col < N)
+            {
+                float res = 0.0f;
 
-        for (int k = 0; k < K; k++){
-            res += A[row * K + k] * B_transposed[col * N + k];
+                for (int k = 0; k < K; k++){
+                    res += A[row_offset * K + k] * B_transposed[col_offset * N + k];
+                }
+                C[row_offset * N + col_offset] = res;
+            }
         }
-        C[row * N + col] = res;
     }
 }
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Multi-GPU GEMM
-///////////////////////////////////////////////////////////////////////////////
 void multi_gpu_gemm(
     const float* h_A,
     const float* h_B_transposed,
-    float* h_C)
+    float* h_C,
+    const int grid_size,
+    const int matrix_size
+)
 {
+    #define M matrix_size
+    #define K matrix_size
+    #define N matrix_size
+
     int device_count = 0;
     CHECK_CUDA(cudaGetDeviceCount(&device_count));
 
@@ -115,6 +128,7 @@ void multi_gpu_gemm(
         //The matrix B is split along its columns.
         size_t bytesB = B_T_ROWS_PER_GPU * N * sizeof(float);
         size_t bytesC = local_rows * N * sizeof(float);
+        
 
         CHECK_CUDA(cudaMalloc(&d_A[gpu], bytesA));
         CHECK_CUDA(cudaMalloc(&d_B_t[gpu], bytesB));
@@ -138,6 +152,10 @@ void multi_gpu_gemm(
             streams[gpu]));
 
     }
+
+
+
+    const float start_compute = clock();
     for(int timestep=0; timestep<COL_DIVISIONS; timestep++){
 
         //Allocate Work on the different GPUs (spatially.)
@@ -158,13 +176,23 @@ void multi_gpu_gemm(
 
 
             
-
             
             dim3 block(16,16);
 
-            dim3 grid(
-                (N + block.x - 1) / block.x,
-                (local_rows + block.y - 1) / block.y);
+            int grid_x;
+            int grid_y;
+
+            if(grid_size==0){
+                grid_x = (N + block.x - 1) / block.x;
+                grid_y = (local_rows + block.y - 1) / block.y;
+            }
+            else{
+                grid_x = grid_size;
+                grid_y = grid_size;
+            }
+            
+            dim3 grid(grid_x,grid_y);
+
 
             matmul_kernel_transposed<<<grid, block, 0, streams[gpu]>>>(
                 d_A[gpu],
@@ -198,6 +226,9 @@ void multi_gpu_gemm(
     }
 
     //Copy the data back to the host.
+    const float end_compute = clock();
+
+    cout << "compute time: " << end_compute - start_compute << endl;
 
     for (int gpu = 0; gpu < NUM_GPUS; ++gpu)
     {   
@@ -213,14 +244,14 @@ void multi_gpu_gemm(
         size_t bytesB = K * N * sizeof(float);
         size_t bytesC = local_rows * N * sizeof(float);
 
-        /*
+        
         CHECK_CUDA(cudaMemcpyAsync(
             h_C + row_start * K,
             d_C[gpu],
-            bytesC,
+            M*K/NUM_GPUS,
             cudaMemcpyDeviceToHost,
             streams[gpu]));
-        */
+        
     }
 }
 
@@ -228,87 +259,19 @@ void multi_gpu_gemm(
 
 
 
-/*
-///////////////////////////////////////////////////////////////////////////////
-// Example driver
-///////////////////////////////////////////////////////////////////////////////
-int main()
+int main(int argc, const char* argv[])
 {
+
+    if(argc < 3){
+        cout << "Provide Command Line arguments" << endl;
+        return 0;
+    }
+
+    int grid_size = atoi(argv[1]);
+    int matrix_size = atoi(argv[2]);
+
+
     
-
-    size_t sizeA = (size_t)M * K;
-    size_t sizeB = (size_t)K * N;
-    size_t sizeC = (size_t)M * N;
-
-    vector<float> A(sizeA);
-    vector<float> B(sizeB);
-    vector<float> C(sizeC);
-
-    for (size_t i = 0; i < sizeA; ++i)
-        A[i] = 1.0f;
-
-    for (size_t i = 0; i < sizeB; ++i)
-        B[i] = 1.0f;
-
-    multi_gpu_gemm(
-        A.data(),
-        B.data(),
-        C.data(),
-        M,
-        K,
-        N);
-
-    std::cout << "C[0] = "
-              << C[0]
-              << std::endl;
-
-    return 0;
-}
-        cudaGetLastError();
-
-        //---------------------------------------------------------------
-        // Copy result back
-        //---------------------------------------------------------------
-        cudaMemcpyAsync(
-      int rowsA      h_C + row_start * N,
-            d_C[gpu],
-            bytesC,
-            cudaMemcpyDeviceToHost,
-            streams[gpu]);
-    }
-
-    ///////////////////////////////////////////////////////////////////////
-    // Synchronize all GPUs
-    ///////////////////////////////////////////////////////////////////////
-    for (int gpu = 0; gpu < NUM_GPUS; ++gpu)
-    {h_B
-        CHECK_CUDA(cudaSetDevice(gpu));
-        CHECK_CUDA(cudaStreamSynchronize(streams[gpu]));
-    }
-
-    ///////////////////////////////////////////////////////////////////////
-    // Cleanup
-    ///////////////////////////////////////////////////////////////////////
-    for (int gpu = 0; gpu < NUM_GPUS; ++gpu)
-    {
-        CHECK_CUDA(cudaSetDevice(gpu));
-
-        cudaFree(d_A[gpu]);
-        cudaFree(d_B[gpu]);
-        cudaFree(d_C[gpu]);
-
-        cudaStreamDestroy(streams[gpu]);
-    }
-}
-*/
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Example driver
-///////////////////////////////////////////////////////////////////////////////
-int main()
-{
-
     size_t sizeA = (size_t)M * K;
     size_t sizeB = (size_t)K * N;
     size_t sizeC = (size_t)M * N;
@@ -334,17 +297,18 @@ int main()
     #pragma omp parallel for
     for (size_t i = 0; i < N; i++){
         for(size_t j=0; j <K; j++){
-            h_B_transpose[i*K+j] = h_B[j*K+i];
+            h_B_transpose[i*K+j] = h_B[j*N+i];
         }
     }
-    cout << "B transposed" << endl;
+    //cout << "B transposed" << endl;
 
-    multi_gpu_gemm(h_A.data(),h_B_transpose.data(),h_C.data());
+    multi_gpu_gemm(h_A.data(),h_B_transpose.data(),h_C.data(), grid_size,matrix_size);
 
 
     const float stop = clock();
 
 
+    /*
     cout << "duration "
               << stop-start
               << endl;
@@ -356,5 +320,6 @@ int main()
         }
         cout << endl;
     }
+    */
     return 0;
 }

@@ -28,6 +28,12 @@ void matrix_row_partition(const vector<MatrixElement> A, int* indices){
 
 }
 
+//Needed for the fast transpose of a matrix.
+struct columnInfo {
+    int index;
+    int entries;
+}
+
 void matrix_multiplication(const vector<MatrixElement> A, const vector<MatrixElement> B, vector<MatrixElement>& C) {
 
     vector<MatrixElement> A_parts[NUM_THREADS];
@@ -84,6 +90,15 @@ void matrix_multiplication(const vector<MatrixElement> A, const vector<MatrixEle
     vector<MatrixElement> C_parts[NUM_THREADS];
     //Inner-product based sparse matrix
     //Each Thread can now compute the dot product
+    
+    
+    vector<columnInfo> columns;
+    vector<MatrixElement> B_transposed;
+    B_transposed.reserve(B.size());
+    //Transpose B.
+    for()
+
+
     for(int timestep = 0; timestep < NUM_THREADS; timestep++){
         #pragma omp parallel for
         for(int thread_id = 0; thread_id < NUM_THREADS; thread_id++){
@@ -93,22 +108,27 @@ void matrix_multiplication(const vector<MatrixElement> A, const vector<MatrixEle
 
             //Compute the dot product of A_i and B_j and store in C_i_j
             
-
             //In each iteration, we only require one bucket.
             
             int last_row = 0;
             int b_index = 0;
             //Iterate over row of A; iterate over column of B.
-            for(auto a_elem = A_part.begin(); a_elem != A_part.end() ; a_elem++){
-                const int current_row = a_elem->row;
+            float acc = 0.0;
 
-                float acc = 0.0;
+            int current_row;
+            for(auto a_elem = A_part.begin(); a_elem != A_part.end() ; a_elem++){
                 
-                if(current_row != last_row){
+
+                
+                
+                if(current_row != a_elem->row){
                     //We have moved to a new row of A; we have to reset the column index of B.
                     b_index = 0;
-                    last_row = current_row;
+                    acc = 0.0;
+                    struct MatrixElement c = {current_row,iter->col,prod};
                 }
+                current_row = a_elem->row;
+
                 for(auto iter = B.begin(); iter < B.end(); iter++){
                     if(a_elem->col == iter->row){
                         float prod = a_elem->value * iter->value;
