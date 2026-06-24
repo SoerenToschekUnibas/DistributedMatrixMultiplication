@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#SBATCH --job-name=sparse-mmx
+#SBATCH --time=00:05:00
+#SBATCH --partition=l40s
+#SBATCH --qos=l40s-30min
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --hint=nomultithread
+
+
+nvcc  dense.cu -o dense.out -Xcompiler -fopenmp 
+
+
+
+./dense.out 2 4096 >> strong_scaling.txt
+./dense.out 4 4096 >> strong_scaling.txt
+./dense.out 8 4096 >> strong_scaling.txt
+./dense.out 16 4096 >> strong_scaling.txt
+./dense.out 32 4096 >> strong_scaling.txt
+./dense.out 64 4096 >> strong_scaling.txt
+echo "Results in strong_scaling.txt"
+
+./dense.out 1 512 >> weak_scaling.txt
+./dense.out 8 1024 >> weak_scaling.txt
+./dense.out 64 2048 >> weak_scaling.txt
