@@ -22,6 +22,8 @@ nvcc  dense.cu -o dense.out -Xcompiler -fopenmp
 ./dense.out 64 4096 >> strong_scaling.txt
 echo "Results in strong_scaling.txt"
 
+echo "\n-----\n" >> weak_scaling.txt
 ./dense.out 1 512 >> weak_scaling.txt
 ./dense.out 8 1024 >> weak_scaling.txt
+./dense.out 27 1536 >> weak_scaling.txt
 ./dense.out 64 2048 >> weak_scaling.txt
