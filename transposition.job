@@ -7,18 +7,18 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
-g++  transposition_parallel.cpp -o transposition_parallel.out -fopenmp
+g++ transposition_parallel.cpp -o transposition_parallel.out -fopenmp
 
-# mkdir transposition_execution_time
+mkdir transposition_execution_time
 
 #do every experiment twice, to figure out the error bars of this experiment.
 
-for run_index in {16..31}
+for run_index in 0 1 2 3 4 5 6 7 8
 do
     mkdir transposition_execution_time/run_${run_index}
     for num_threads in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
-        for matrix_size in 32 64 128 256 512
+        for matrix_size in 128 256 512 1024
         do
             ./transposition_parallel.out ${num_threads} ${matrix_size} >> transposition_execution_time/run_${run_index}/transposition_${num_threads}.txt
            

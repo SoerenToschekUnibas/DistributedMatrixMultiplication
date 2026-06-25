@@ -19,7 +19,7 @@ int main(int argc, char** argv){
     #define N matrix_size
     
     float* A = new float[N*N];
-    
+    float* B = new float[N*N];
     float* C = new float[N*N];
 
     
@@ -30,15 +30,20 @@ int main(int argc, char** argv){
 
     int x = 12;
     //use static scheduling for matrix transposition.
-    #pragma omp parallel for collapse(2)
-    for (int i = 0; i < N/num_threads; i++) {
-        
-        float* B_part = new float[(N/num_threads)*N];
-        
-        for (int j = 0; j < M; j++) {
-            B_part[i*N+j] = A[j*N+i];
+    //for(int t_id = 0; t_id < num_threads; t_id++){
+
+
+    
+    
+    //Each Thread should receive exactly one iteration of the outer loop.
+    //float* B_part = new float[(N/num_threads)*N];
+    #pragma omp parallel for schedule(static)
+    for (int j = 0; j < M; j++) {
+        for (int i = 0; i < N; i++) {
+            B[i*N+j] = A[j*N+i];
         }
     }
+    
 
     const float ending = clock();
 

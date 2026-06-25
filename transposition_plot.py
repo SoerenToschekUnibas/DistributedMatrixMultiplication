@@ -6,7 +6,9 @@ data = []
 
 list_of_thread_counts = [i for i in range(1,17)]
 
-num_runs = 32
+matrix_size_index = 0
+
+num_runs = 8
 
 for run_index in range(num_runs):
     data.append([])
@@ -25,12 +27,12 @@ for i in range(len(data[0])):
     #number of threads.
     s = 0.0
     for run_index in range(num_runs):
-        s += data[run_index][i][3]
+        s += data[run_index][i][matrix_size_index]
     mean_pts.append(s/num_runs)
 
 
 for run_index in range(num_runs):
-    plt.plot([data[run_index][i][3] for i in range(len(data[run_index]))],label="",color="gray",linewidth=1)
+    plt.plot([data[run_index][i][matrix_size_index] for i in range(len(data[run_index]))],label="",color="gray",linewidth=1)
 plt.plot(mean_pts,label="",color="blue",linewidth=5)
 
 plt.xticks([i for i in range(len(list_of_thread_counts))],labels=list_of_thread_counts,)
@@ -40,8 +42,16 @@ plt.show()
 
 
 
-for i in range(5):
-    plt.plot(data[0][i], label=str(2**i) + " Threads")
+for t_index in range(len(list_of_thread_counts)):
+    mean_pts = []
+    for i in range(len(data[0][0])):
+        s = 0.0
+        for run_index in range(num_runs):
+            s += data[run_index][t_index][i]
+        mean_pts.append(s/num_runs)
+    plt.plot(mean_pts, label=str(1+t_index) + " Threads")
+
+
 plt.title("Matrix Transposition")
 plt.xlabel("Matrix size")
 plt.ylabel("Execution Time")

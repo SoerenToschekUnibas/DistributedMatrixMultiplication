@@ -17,10 +17,12 @@ int main(int argc, char** argv) {
         cout << "Usage: " << argv[0] << endl;
         return 1;
     }
-    const int num_threads = atoi(argv[2]);
-    //omp_set_num_threads(num_threads);
+    const int num_threads = atoi(argv[1]);
+    
 
-    const int matrix_size = atoi(argv[1]);
+    const int matrix_size = atoi(argv[2]);
+
+
     #define N matrix_size
     float* A = new float[N*N];
     float* B = new float[N*N];
@@ -29,20 +31,23 @@ int main(int argc, char** argv) {
 
     const float start_compute = clock();
 
+    omp_set_num_threads(num_threads);
     
     #pragma omp parallel for collapse(2) schedule(dynamic) 
     for(int i = 0; i < N; i++){
         for(int j = 0; j < N; j++){
             // Matrix multiplication logic would go here
+            float acc = 0.0;
             for(int k = 0; k < N; k++){
                 // Perform multiplication and accumulation
-                C[i*N + j] += A[i*N + k] * B[k*N + j];
+                acc += A[i*N + k] * B[j*N + k];
             }
+            C[i*N + j] = acc;
         }
     }
 
     const float end_compute = clock();
 
     const float duration = (end_compute - start_compute) / CLOCKS_PER_SEC;
-    cout << num_threads << ", " << matrix_size << ", " << num_threads << ", " << duration << endl;
+    cout<< matrix_size << ", " << duration << endl;
 }
